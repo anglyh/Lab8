@@ -1,6 +1,4 @@
-﻿using Lab8_AngelYaguno.Models;
-
-namespace Lab8_AngelYaguno.Domain.Interfaces;
+﻿namespace Lab8_AngelYaguno.Domain.Interfaces;
 
 public interface IUnitOfWork : IDisposable
 {
