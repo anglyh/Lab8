@@ -1,0 +1,56 @@
+name: Build and Deploy .NET Application
+
+on:
+  push:
+    branches:
+      - main # Automáticamente se ejecuta cuando se suben cambios a la rama principal
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v4
+      
+    - name: Set up .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '8.0.x'
+        
+    - name: Cache dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.nuget/packages
+        key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+        restore-keys: |
+          ${{ runner.os }}-nuget-
+          
+    - name: Restore dependencies
+      run: dotnet restore Lab8-AngelYaguno/Lab8-AngelYaguno.csproj
+      
+    - name: Build application
+      run: dotnet build Lab8-AngelYaguno/Lab8-AngelYaguno.csproj --configuration Release --no-restore
+      
+    - name: Run tests (if any)
+      run: dotnet test Lab8-AngelYaguno/Lab8-AngelYaguno.csproj --configuration Release --no-build --verbosity normal
+      continue-on-error: true
+      
+    - name: Publish application
+      run: dotnet publish Lab8-AngelYaguno/Lab8-AngelYaguno.csproj --configuration Release --output ./published --no-build
+      
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: published-app
+        path: ./published/
+        
+    # Ejemplo de despliegue (comentado por seguridad)
+    # - name: Deploy to server
+    #   run: |
+    #     # Aquí irían los comandos de despliegue
+    #     # scp -r ./published username@server:/path/to/deploy
+    #     echo "Deployment step would go here"
