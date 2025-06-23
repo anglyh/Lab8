@@ -28,9 +28,9 @@ public partial class ApplicationDbContext : DbContext
     {
         modelBuilder.Entity<Client>(entity =>
         {
-            entity.HasKey(e => e.ClientId).HasName("PK_clients");
+            entity.HasKey(e => e.ClientId).HasName("PK_Clients");
 
-            entity.ToTable("clients");
+            entity.ToTable("Clients");
 
             entity.Property(e => e.Email).HasMaxLength(100);
             entity.Property(e => e.Name).HasMaxLength(100);
@@ -38,46 +38,46 @@ public partial class ApplicationDbContext : DbContext
 
         modelBuilder.Entity<Order>(entity =>
         {
-            entity.HasKey(e => e.OrderId).HasName("PK_orders");
+            entity.HasKey(e => e.OrderId).HasName("PK_Orders");
 
-            entity.ToTable("orders");
+            entity.ToTable("Orders");
 
-            entity.HasIndex(e => e.ClientId, "IX_orders_ClientId");
+            entity.HasIndex(e => e.ClientId, "IX_Orders_ClientId");
 
             entity.Property(e => e.OrderDate).HasColumnType("timestamp");
 
             entity.HasOne(d => d.Client).WithMany(p => p.Orders)
                 .HasForeignKey(d => d.ClientId)
                 .OnDelete(DeleteBehavior.Restrict)
-                .HasConstraintName("FK_orders_clients");
+                .HasConstraintName("FK_Orders_Clients");
         });
 
         modelBuilder.Entity<Orderdetail>(entity =>
         {
-            entity.HasKey(e => e.OrderDetailId).HasName("PK_orderdetails");
+            entity.HasKey(e => e.OrderDetailId).HasName("PK_OrderDetails");
 
-            entity.ToTable("orderdetails");
+            entity.ToTable("OrderDetails");
 
-            entity.HasIndex(e => e.OrderId, "IX_orderdetails_OrderId");
+            entity.HasIndex(e => e.OrderId, "IX_OrderDetails_OrderId");
 
-            entity.HasIndex(e => e.ProductId, "IX_orderdetails_ProductId");
+            entity.HasIndex(e => e.ProductId, "IX_OrderDetails_ProductId");
 
             entity.HasOne(d => d.Order).WithMany(p => p.Orderdetails)
                 .HasForeignKey(d => d.OrderId)
                 .OnDelete(DeleteBehavior.Restrict)
-                .HasConstraintName("FK_orderdetails_orders");
+                .HasConstraintName("FK_OrderDetails_Orders");
 
             entity.HasOne(d => d.Product).WithMany(p => p.Orderdetails)
                 .HasForeignKey(d => d.ProductId)
                 .OnDelete(DeleteBehavior.Restrict)
-                .HasConstraintName("FK_orderdetails_products");
+                .HasConstraintName("FK_OrderDetails_Products");
         });
 
         modelBuilder.Entity<Product>(entity =>
         {
-            entity.HasKey(e => e.ProductId).HasName("PK_products");
+            entity.HasKey(e => e.ProductId).HasName("PK_Products");
 
-            entity.ToTable("products");
+            entity.ToTable("Products");
 
             entity.Property(e => e.Description).HasMaxLength(100);
             entity.Property(e => e.Name).HasMaxLength(100);

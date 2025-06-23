@@ -2,6 +2,7 @@ using System.Text.Json.Serialization;
 using Lab8_AngelYaguno.Data;
 using Lab8_AngelYaguno.Domain.Interfaces;
 using Lab8_AngelYaguno.Services;
+using Lab8_AngelYaguno.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 
@@ -94,6 +95,36 @@ else
     });
 }
 
+// Aplicar migraciones automáticamente al iniciar
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    try
+    {
+        Console.WriteLine("Aplicando migraciones y creando base de datos...");
+        context.Database.EnsureCreated();
+        
+        // Verificar si ya hay datos
+        var clientCount = context.Clients.Count();
+        Console.WriteLine($"Número de clientes existentes: {clientCount}");
+        
+        if (clientCount == 0)
+        {
+            Console.WriteLine("Insertando datos de prueba...");
+            SeedData(context);
+        }
+        else
+        {
+            Console.WriteLine("Los datos ya existen, omitiendo seed...");
+        }
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error al configurar base de datos: {ex.Message}");
+        Console.WriteLine($"Stack trace: {ex.StackTrace}");
+    }
+}
+
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
@@ -103,3 +134,71 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+// Método para insertar datos de prueba
+static void SeedData(ApplicationDbContext context)
+{
+    try
+    {
+        // Insertar clientes
+        var clients = new[]
+        {
+            new Client { Name = "Juan Pérez", Email = "juan.perez@example.com" },
+            new Client { Name = "Ana Gómez", Email = "ana.gomez@example.com" },
+            new Client { Name = "Carlos Díaz", Email = "carlos.diaz@example.com" },
+            new Client { Name = "Lucía Martínez", Email = "lucia.martinez@example.com" }
+        };
+        context.Clients.AddRange(clients);
+        context.SaveChanges();
+        Console.WriteLine("Clientes insertados correctamente");
+
+        // Insertar productos
+        var products = new[]
+        {
+            new Product { Name = "Producto A", Price = 10.50m, Description = "This product is cheap" },
+            new Product { Name = "Producto B", Price = 25.00m, Description = "This product is pretty" },
+            new Product { Name = "Producto C", Price = 15.75m, Description = "This product is awesome" },
+            new Product { Name = "Producto D", Price = 30.20m, Description = null }
+        };
+        context.Products.AddRange(products);
+        context.SaveChanges();
+        Console.WriteLine("Productos insertados correctamente");
+
+        // Insertar pedidos
+        var orders = new[]
+        {
+            new Order { ClientId = 1, OrderDate = new DateTime(2025, 5, 1, 10, 0, 0) },
+            new Order { ClientId = 1, OrderDate = new DateTime(2025, 5, 2, 11, 0, 0) },
+            new Order { ClientId = 2, OrderDate = new DateTime(2025, 5, 3, 12, 0, 0) },
+            new Order { ClientId = 2, OrderDate = new DateTime(2025, 5, 4, 13, 0, 0) },
+            new Order { ClientId = 3, OrderDate = new DateTime(2025, 5, 5, 14, 0, 0) },
+            new Order { ClientId = 3, OrderDate = new DateTime(2025, 5, 6, 15, 0, 0) },
+            new Order { ClientId = 4, OrderDate = new DateTime(2025, 5, 7, 16, 0, 0) }
+        };
+        context.Orders.AddRange(orders);
+        context.SaveChanges();
+        Console.WriteLine("Pedidos insertados correctamente");
+
+        // Insertar detalles de pedidos
+        var orderDetails = new[]
+        {
+            new Orderdetail { OrderId = 1, ProductId = 2, Quantity = 2 },
+            new Orderdetail { OrderId = 1, ProductId = 1, Quantity = 1 },
+            new Orderdetail { OrderId = 2, ProductId = 3, Quantity = 1 },
+            new Orderdetail { OrderId = 2, ProductId = 4, Quantity = 1 },
+            new Orderdetail { OrderId = 3, ProductId = 1, Quantity = 3 },
+            new Orderdetail { OrderId = 3, ProductId = 2, Quantity = 2 },
+            new Orderdetail { OrderId = 4, ProductId = 3, Quantity = 1 }
+        };
+        context.Orderdetails.AddRange(orderDetails);
+        context.SaveChanges();
+        Console.WriteLine("Detalles de pedidos insertados correctamente");
+
+        Console.WriteLine("Seed de datos completado exitosamente");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error durante el seed de datos: {ex.Message}");
+        Console.WriteLine($"Stack trace: {ex.StackTrace}");
+    }
+}
