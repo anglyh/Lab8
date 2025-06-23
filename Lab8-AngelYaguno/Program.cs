@@ -8,10 +8,29 @@ using Microsoft.OpenApi.Models;
 var builder = WebApplication.CreateBuilder(args);
 
 // Configurar cadena de conexión basada en el entorno
-var connectionString = builder.Environment.IsDevelopment() 
-    ? builder.Configuration.GetConnectionString("DefaultConnection")
-    : Environment.GetEnvironmentVariable("DATABASE_URL") ?? 
-      builder.Configuration.GetConnectionString("ProductionConnection");
+string connectionString;
+
+if (builder.Environment.IsDevelopment())
+{
+    connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+}
+else
+{
+    // En producción, usar DATABASE_URL de Render
+    var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
+    
+    if (!string.IsNullOrEmpty(databaseUrl))
+    {
+        // Parsear la URL de Render: postgresql://user:password@host:port/database
+        var uri = new Uri(databaseUrl);
+        connectionString = $"Host={uri.Host};Port={uri.Port};Database={uri.LocalPath.TrimStart('/')};Username={uri.UserInfo.Split(':')[0]};Password={uri.UserInfo.Split(':')[1]};SSL Mode=Require;Trust Server Certificate=true";
+    }
+    else
+    {
+        // Fallback a variables individuales si DATABASE_URL no existe
+        connectionString = $"Host={Environment.GetEnvironmentVariable("DB_HOST")};Port={Environment.GetEnvironmentVariable("DB_PORT")};Database={Environment.GetEnvironmentVariable("DB_NAME")};Username={Environment.GetEnvironmentVariable("DB_USER")};Password={Environment.GetEnvironmentVariable("DB_PASSWORD")};SSL Mode=Require;Trust Server Certificate=true";
+    }
+}
 
 // Debug: Log de la cadena de conexión (solo para depuración)
 Console.WriteLine($"Environment: {builder.Environment.EnvironmentName}");
@@ -20,6 +39,12 @@ Console.WriteLine($"Connection string length: {connectionString?.Length ?? 0}");
 if (string.IsNullOrEmpty(connectionString))
 {
     Console.WriteLine("ERROR: Connection string is null or empty!");
+}
+else
+{
+    // Log solo la parte del host para debugging (sin exponer credenciales)
+    var hostPart = connectionString.Split(';')[0];
+    Console.WriteLine($"Host part: {hostPart}");
 }
 
 // Configurar PostgreSQL
