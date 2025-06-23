@@ -27,4 +27,4 @@ ENV PORT=8080
 ENV ASPNETCORE_URLS=http://*:8080
 ENV ASPNETCORE_ENVIRONMENT=Production
 
-ENTRYPOINT ["dotnet", "Lab8-AngelYaguno.dll"]
+ENTRYPOINT ["dotnet", "Lab8-AngelYaguno.dll"] 
