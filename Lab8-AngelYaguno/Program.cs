@@ -13,6 +13,15 @@ var connectionString = builder.Environment.IsDevelopment()
     : Environment.GetEnvironmentVariable("DATABASE_URL") ?? 
       builder.Configuration.GetConnectionString("ProductionConnection");
 
+// Debug: Log de la cadena de conexión (solo para depuración)
+Console.WriteLine($"Environment: {builder.Environment.EnvironmentName}");
+Console.WriteLine($"DATABASE_URL exists: {Environment.GetEnvironmentVariable("DATABASE_URL") != null}");
+Console.WriteLine($"Connection string length: {connectionString?.Length ?? 0}");
+if (string.IsNullOrEmpty(connectionString))
+{
+    Console.WriteLine("ERROR: Connection string is null or empty!");
+}
+
 // Configurar PostgreSQL
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(connectionString)
