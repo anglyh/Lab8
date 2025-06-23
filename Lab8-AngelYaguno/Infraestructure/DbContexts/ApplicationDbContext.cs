@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using Lab8_AngelYaguno.Models;
 using Microsoft.EntityFrameworkCore;
-using Pomelo.EntityFrameworkCore.MySql.Scaffolding.Internal;
 
 namespace Lab8_AngelYaguno.Data;
 
@@ -25,19 +24,11 @@ public partial class ApplicationDbContext : DbContext
 
     public virtual DbSet<Product> Products { get; set; }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseMySql("server=localhost;user=root;password=root;database=linqexample", Microsoft.EntityFrameworkCore.ServerVersion.Parse("8.0.41-mysql"));
-
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder
-            .UseCollation("utf8mb4_0900_ai_ci")
-            .HasCharSet("utf8mb4");
-
         modelBuilder.Entity<Client>(entity =>
         {
-            entity.HasKey(e => e.ClientId).HasName("PRIMARY");
+            entity.HasKey(e => e.ClientId).HasName("PK_clients");
 
             entity.ToTable("clients");
 
@@ -47,44 +38,44 @@ public partial class ApplicationDbContext : DbContext
 
         modelBuilder.Entity<Order>(entity =>
         {
-            entity.HasKey(e => e.OrderId).HasName("PRIMARY");
+            entity.HasKey(e => e.OrderId).HasName("PK_orders");
 
             entity.ToTable("orders");
 
-            entity.HasIndex(e => e.ClientId, "ClientId");
+            entity.HasIndex(e => e.ClientId, "IX_orders_ClientId");
 
-            entity.Property(e => e.OrderDate).HasColumnType("datetime");
+            entity.Property(e => e.OrderDate).HasColumnType("timestamp");
 
             entity.HasOne(d => d.Client).WithMany(p => p.Orders)
                 .HasForeignKey(d => d.ClientId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("orders_ibfk_1");
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("FK_orders_clients");
         });
 
         modelBuilder.Entity<Orderdetail>(entity =>
         {
-            entity.HasKey(e => e.OrderDetailId).HasName("PRIMARY");
+            entity.HasKey(e => e.OrderDetailId).HasName("PK_orderdetails");
 
             entity.ToTable("orderdetails");
 
-            entity.HasIndex(e => e.OrderId, "OrderId");
+            entity.HasIndex(e => e.OrderId, "IX_orderdetails_OrderId");
 
-            entity.HasIndex(e => e.ProductId, "ProductId");
+            entity.HasIndex(e => e.ProductId, "IX_orderdetails_ProductId");
 
             entity.HasOne(d => d.Order).WithMany(p => p.Orderdetails)
                 .HasForeignKey(d => d.OrderId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("orderdetails_ibfk_1");
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("FK_orderdetails_orders");
 
             entity.HasOne(d => d.Product).WithMany(p => p.Orderdetails)
                 .HasForeignKey(d => d.ProductId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("orderdetails_ibfk_2");
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("FK_orderdetails_products");
         });
 
         modelBuilder.Entity<Product>(entity =>
         {
-            entity.HasKey(e => e.ProductId).HasName("PRIMARY");
+            entity.HasKey(e => e.ProductId).HasName("PK_products");
 
             entity.ToTable("products");
 

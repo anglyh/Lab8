@@ -7,11 +7,15 @@ using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+// Configurar cadena de conexión basada en el entorno
+var connectionString = builder.Environment.IsDevelopment() 
+    ? builder.Configuration.GetConnectionString("DefaultConnection")
+    : Environment.GetEnvironmentVariable("DATABASE_URL") ?? 
+      builder.Configuration.GetConnectionString("ProductionConnection");
 
-var serverVersion = new MySqlServerVersion(new Version(8, 0, 40));
+// Configurar PostgreSQL
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseMySql(connectionString, serverVersion)
+    options.UseNpgsql(connectionString)
         .LogTo(Console.WriteLine, LogLevel.Information)
         .EnableSensitiveDataLogging()
         .EnableDetailedErrors()
@@ -37,12 +41,23 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
+// Configurar para producción y desarrollo
 if (app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Home/Error");
-    app.UseHsts();
     app.UseSwagger();
     app.UseSwaggerUI();
+}
+else
+{
+    app.UseExceptionHandler("/Error");
+    app.UseHsts();
+    // Habilitar Swagger también en producción para Render
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
+        c.RoutePrefix = string.Empty; // Swagger UI en la raíz
+    });
 }
 
 app.UseHttpsRedirection();
